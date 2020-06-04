@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>JavaScript Game</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/all.min.css">
+	<style>
+		*{
+			margin:0;
+			padding: 0;
+		}
+		body{
+			min-height: 100vh;
+			font-family: sans-serif;
+		}
+		.gamearea{
+			width: 400px;
+			height: 100vh;
+			border:1px solid black;
+			position: relative;
+			overflow: hidden;
+			margin:0 auto;
+			background: #000a;
+			border-left: 5px dashed white;
+			border-right: 5px dashed white;
+		}
+		.char, .enemy{
+			position: absolute;
+			bottom:0;
+			left:0;
+			height: 100px;
+			width: 100px;
+			background: #000;
+		}
+		.enemy{
+			background: #f00;
+			animation: animate 1s linear infinite;
+		}
+		@keyframes animate {
+			0%{top:-100px;}
+			100%{top:100%;}
+		}
+		.score{
+			position: absolute;
+			top:10px;
+			left:120px;
+			width: 200px;
+			height: 50px;
+			text-align: center;
+			line-height: 50px;
+			background: white;
+			box-shadow: 0px 5px 10px #0004,0px 10px 15px #0004,0px 15px 20px #0004;
+			pointer-events: none;
+		}
+		.pauseBtn{
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			width: 50px;
+			height: 50px;
+			border-radius: 50%;
+			box-shadow: 0px 2px 6px #0004,0px 5px 10px #0004,0px 8px 15px #0004;
+			font-size: 1.5rem;
+			color:white;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+		.pauseBtn:hover{
+			background: #f00;
+		}
+		.red{
+			background: red;
+		}
+		.leftClick, .rightClick{
+			position: absolute;
+			z-index: 222;
+			bottom: 0;
+			left:0;
+			width: 50%;
+			height: 50vh;
+			font-size: 60px;
+			color:#fffa;
+			display: flex;
+			align-items: center;
+			justify-content: flex-start;
+		}
+		.rightClick{
+			left: 50%;
+			justify-content: flex-end;
+		}
+		.StartBtn{
+			padding:10px;
+			background: wheat;
+			width: 200px;
+			position: absolute;
+			top:10px;
+			left: 120px;
+			font-size: 20px;
+			cursor: pointer;
+			border:none;
+			outline: none;
+			box-shadow: 0px 5px 10px #0004,0px 10px 15px #0004,0px 15px 20px #0004;
+			opacity: 0;
+			visibility: hidden;
+			z-index: 111111;
+
+		}
+	</style>
+	
+</head>
+<body oncontextmenu="return false;">
+	<div class="gamearea">
+
+		<div class="score"></div>
+		<button class="StartBtn">Start</button>
+		<div class="leftClick"><i class="far fa-arrow-alt-circle-left"></i></i></div>
+		<div class="rightClick"><i class="far fa-arrow-alt-circle-right"></i></i></div>
+		<div class="pauseBtn"><i class="fa fa-pause"></i></div>
+		<div class="char"></div>
+		<div class="enemy"></div>
+
+	</div>
+
+	<script>
+		var left = 0;
+		var char = document.querySelector('.char');
+		var enemy = document.querySelector('.enemy');
+		var scoreArea = document.querySelector('.score');
+		var pauseBtn = document.querySelector('.pauseBtn');
+		var rightClick = document.querySelector('.rightClick');
+		var leftClick = document.querySelector('.leftClick');
+		var score = 0;
+		var pause = false;
+		var StartBtn = document.querySelector('.StartBtn');
+
+		document.addEventListener('keydown',function(e) {
+			if(e.key === "ArrowRight"){moveRight();}
+			if(e.key === "ArrowLeft"){moveLeft();}
+		});
+
+		rightClick.addEventListener('click',moveRight);
+		leftClick.addEventListener('click',moveLeft);
+
+		function moveLeft(){
+			if(char.offsetLeft > 0 && !pauseBtn.classList[1]){
+				left -= 100;char.style.left = left + 'px';
+			}
+		}
+
+		function moveRight(){
+			if(!pauseBtn.classList[1] && char.offsetLeft < 300){
+				left += 100;char.style.left = left + 'px';
+			}
+		}
+
+		enemy.addEventListener('animationiteration',colide);
+		function colide (){
+		let	enemyLeft = Math.floor(Math.random() * 4) * 100;
+			enemy.style.left = enemyLeft + 'px' ;
+		}
+
+		setInterval(collision,1);
+
+		function collision(){
+			let charLeft = parseInt(char.getBoundingClientRect().left);
+			let enemyLeft = parseInt(enemy.getBoundingClientRect().left);
+			let enemyTop = parseInt(enemy.getBoundingClientRect().top);
+			let screenHieght = document.querySelector('.gamearea').getBoundingClientRect().height;
+
+			if(charLeft == enemyLeft && enemyTop < screenHieght && enemyTop > (screenHieght - 180))
+				{
+					enemy.style.animation = 'none';
+					enemy.style.display = 'none';
+					char.style.display = 'none';
+					pauseBtn.style.display = 'none';
+					StartBtn.style.opacity = '1';
+					StartBtn.style.visibility = 'visible';
+					scoreArea.style.opacity = '0';
+					scoreArea.style.visibility = 'hidden';
+					alert('Game Over Your Score is ' + score);
+					clearInterval(scoreInterval);
+				}
+			}
+		
+		var scoreInterval = setInterval(scored,10);
+
+		function scored() {
+
+			if(pauseBtn.classList[1]){
+				pause = true;
+				enemy.style.animationPlayState = 'paused';
+			}else{
+				pause = false;
+				enemy.style.animationPlayState = 'running';
+			}
+
+			if(pause === false){
+				score +=1; scoreArea.innerHTML = `<h3>Score: ${score}</h3>`;
+			}
+		}
+
+		pauseBtn.addEventListener('click',function() {
+			this.classList.toggle('red');
+			pauseBtn.querySelector('i').classList.toggle('fa-play');
+		});
+
+		StartBtn.onclick = function() {window.location.reload();} 
+	</script>
+</body>
+</html>
